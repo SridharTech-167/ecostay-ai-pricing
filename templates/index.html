@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>EcoStay Pricing AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f3f6f1;
+            margin: 0;
+            color: #1f2d23
+        }
+
+        header {
+            background: #2f5d3a;
+            color: #fff;
+            padding: 18px 28px
+        }
+
+        main {
+            padding: 20px 28px;
+            display: grid;
+            gap: 18px;
+            max-width: 1100px;
+            margin: auto
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 4px #0001
+        }
+
+        .big {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2f5d3a
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        td,
+        th {
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+            text-align: left
+        }
+
+        input,
+        button {
+            padding: 8px;
+            margin: 4px 0
+        }
+
+        button {
+            background: #2f5d3a;
+            color: #fff;
+            border: 0;
+            border-radius: 6px
+        }
+    </style>
+</head>
+
+<body>
+    <header><a href="/logout" style="float:right;color:#fff">Logout</a>
+        <h2 style="margin:0">EcoStay Pricing AI</h2>AI dynamic pricing &amp; revenue management for eco-tourism lodges
+    </header>
+    <main>
+        <div class="row">
+            <div class="card">Revenue uplift vs fixed price<div class="big" id="up">–</div>
+            </div>
+            <div class="card">Dynamic revenue (2025 sim)<div class="big" id="dy">–</div>
+            </div>
+            <div class="card">Fixed revenue (2025 sim)<div class="big" id="fx">–</div>
+            </div>
+        </div>
+        <div class="card"><b>Next 60 days: recommended price &amp; predicted occupancy</b><canvas id="ch"
+                height="110"></canvas></div>
+        <div class="row" style="grid-template-columns:1fr 1fr">
+            <div class="card"><b>What-if simulator</b><br><input type="date" id="d"><br>
+                Price: ₹<span id="pv">4000</span><br><input type="range" id="p" min="2000" max="9000" step="100"
+                    value="4000" style="width:100%">
+                <button onclick="wi()">Predict</button>
+                <div id="wo"></div>
+            </div>
+            <div class="card"><b>Model comparison (test year 2025)</b>
+                <table id="mt"></table>
+            </div>
+        </div>
+        <div class="card"><b>Record a booking day (saved to MySQL)</b><br><input type="date" id="bd"> <input
+                type="number" id="br" placeholder="Rooms (0-20)" min="0" max="20"> <input type="number" id="bp"
+                placeholder="Price ₹" min="2000" max="9000"> <button onclick="addB()">Save</button><span id="bm"></span>
+            <table id="bt" style="margin-top:8px"></table>
+        </div>
+    </main>
+    <script>
+        const f = n => '₹' + n.toLocaleString('en-IN');
+        fetch('/api/results').then(r => r.json()).then(r => {
+            up.textContent = r.simulation.uplift_pct + '%'; dy.textContent = f(r.simulation.dynamic); fx.textContent = f(r.simulation.fixed);
+            mt.innerHTML = '<tr><th>Model</th><th>MAE</th><th>RMSE</th><th>R²</th></tr>' + r.models.map(m => `<tr><td>${m.model}</td><td>${m.MAE}</td><td>${m.RMSE}</td><td>${m.R2}</td></tr>`).join('')
+        });
+        fetch('/api/forecast?days=60').then(r => r.json()).then(r => {
+            new Chart(ch, {
+                type: 'line', data: {
+                    labels: r.map(x => x.date.slice(5)), datasets: [
+                        { label: 'Recommended price (₹)', data: r.map(x => x.price), borderColor: '#2f5d3a', yAxisID: 'y' }, { label: 'Occupancy %', data: r.map(x => x.occupancy), borderColor: '#d98c2b', yAxisID: 'y1' }]
+                },
+                options: { scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false }, max: 100 } } }
+            })
+        });
+        d.value = new Date().toISOString().slice(0, 10); p.oninput = () => pv.textContent = p.value;
+        function wi() { fetch(`/api/whatif?date=${d.value}&price=${p.value}`).then(r => r.json()).then(r => wo.innerHTML = `Predicted bookings: <b>${r.bookings}</b> rooms<br>Occupancy: <b>${r.occupancy}%</b><br>Revenue: <b>${f(r.revenue)}</b>`) }
+        function loadB() { fetch('/api/bookings').then(r => r.json()).then(r => bt.innerHTML = '<tr><th>Date</th><th>Rooms</th><th>Price</th><th>Revenue</th></tr>' + r.map(x => `<tr><td>${x.date}</td><td>${x.rooms_booked}</td><td>${f(x.price)}</td><td>${f(x.revenue)}</td></tr>`).join('')) }
+        function addB() { fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: bd.value, rooms: br.value, price: bp.value }) }).then(r => r.json()).then(r => { bm.textContent = r.ok ? ' Saved ✔' : ' ' + r.error; loadB() }) }
+        loadB();
+    </script>
+</body>
+
+</html>

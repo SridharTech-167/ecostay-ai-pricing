@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>EcoStay – Room Price</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f3f6f1;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            color: #1f2d23
+        }
+
+        .box {
+            background: #fff;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 1px 6px #0002;
+            width: 320px
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2f5d3a
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            box-sizing: border-box
+        }
+
+        button {
+            background: #2f5d3a;
+            color: #fff;
+            border: 0;
+            border-radius: 6px
+        }
+
+        .err {
+            color: #b00020
+        }
+
+        .big {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2f5d3a
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h2>EcoStay Eco-Lodge</h2>
+        <p>Check the room price for your stay date.</p>
+        <input type="date" id="d"><button onclick="go()">Show price</button>
+        <div id="o"></div>
+    </div>
+    <script>d.min = new Date().toISOString().slice(0, 10); d.value = d.min;
+        function go() { fetch('/api/public-price?date=' + d.value).then(r => r.json()).then(r => o.innerHTML = r.error ? '<span class="err">' + r.error + '</span>' : '<p>' + r.date + '</p><div class="big">₹' + r.price_per_night.toLocaleString('en-IN') + '</div>per room, per night') }
+    </script>
+</body>
+
+</html>

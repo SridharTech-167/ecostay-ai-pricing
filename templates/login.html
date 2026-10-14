@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Owner Login</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f3f6f1;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            color: #1f2d23
+        }
+
+        .box {
+            background: #fff;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 1px 6px #0002;
+            width: 320px
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2f5d3a
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            box-sizing: border-box
+        }
+
+        button {
+            background: #2f5d3a;
+            color: #fff;
+            border: 0;
+            border-radius: 6px
+        }
+
+        .err {
+            color: #b00020
+        }
+
+        .big {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2f5d3a
+        }
+    </style>
+</head>
+
+<body>
+    <form class="box" method="post">
+        <h2>Owner Login</h2>{% if error %}<div class="err">{{ error }}</div>{% endif %}
+        <input name="username" placeholder="Username" required autofocus><input name="password" type="password"
+            placeholder="Password" required>
+        <button>Login</button>
+        <p><a href="/book">Customer price check →</a></p>
+    </form>
+</body>
+
+</html>
