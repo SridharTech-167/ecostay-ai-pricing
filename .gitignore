@@ -9,7 +9,7 @@ venv/
 
 # python
 __pycache__/
-*.pyc
+*.py[cod]
 
 # generated files
 data.csv
